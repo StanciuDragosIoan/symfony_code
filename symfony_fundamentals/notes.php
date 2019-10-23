@@ -520,5 +520,34 @@
 
                 replace $isDebug line with: $isDebug: '%kernel.debug%' (note the dynamic 
                 config parameter)
-        
+    
+    12. Constructors for your Controller
+
+        Autowiring works in 2 places:
+
+            1st it works for controller actions (arguments can either have the same name as the
+            route wild card - that's not autowiring or have a typehint for a service)
+
+
+            2nd - the __construct method of services (this is the real place where autowiring
+            should work)
+
+            symfony's container and its autowiring logic is good at instantiating objects (the 
+            right type)
+
+            in services.yaml (in packages/config) we added an $isDebug bind and used it inside 
+            MarkdownHelper
+            
+            tried using the $isDebug boolean bind in the ArticleController (passed it in the
+            show() method and type-hinted it)
+
+            we used not to be able to bind non service arguments to controllers but now we can
+            (initially we had to pass the non service argument only to the constructor, now
+            it works with any method, set it as property, etc...)
+
+            symfony's container instantiates service objects and uses autowiring to pass values
+            to their constructors (any other function than controller actions will not have this
+            autowiring) we can define (via bind) what kind of values are passed to specific
+            argument names (we can go further and control what value should be passed for a specific
+            type-hint)
 */  

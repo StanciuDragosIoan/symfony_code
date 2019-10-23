@@ -22,8 +22,9 @@
         /**
          *@Route("/news/{slug}", name="article_show")
          */
-        public function show($slug, MarkdownHelper $markdownHelper)
+        public function show($slug, MarkdownHelper $markdownHelper, bool $isDebug)
         {   
+            dump($isDebug); die;
 
             $comments = [
                 'Comment One for post One',
