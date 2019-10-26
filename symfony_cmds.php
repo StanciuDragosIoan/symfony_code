@@ -22,6 +22,8 @@
 
      ./bin/console debug:container log (shows al channels of the log service)
 
+     ./bin/console about (shows environment variables)
+
 
      
      @@ACtual symfony cmds:

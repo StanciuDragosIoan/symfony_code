@@ -6,6 +6,9 @@
         "ext-ctype": "*",
         "ext-iconv": "*",
         "knplabs/knp-markdown-bundle": "^1.7",
+        "nexylan/slack": "^2.3",
+        "nexylan/slack-bundle": "^2.2",
+        "php-http/guzzle6-adapter": "^2.0",
         "sensio/framework-extra-bundle": "^5.4",
         "symfony/asset": "4.3.*",
         "symfony/console": "4.3.*",
@@ -14,7 +17,8 @@
         "symfony/framework-bundle": "4.3.*",
         "symfony/twig-bundle": "4.3.*",
         "symfony/web-server-bundle": "4.3.*",
-        "symfony/yaml": "4.3.*"
+        "symfony/yaml": "4.3.*",
+        "wow-apps/symfony-slack-bot": "^4.0"
     },
     "require-dev": {
         "easycorp/easy-log-handler": "^1.0.7",

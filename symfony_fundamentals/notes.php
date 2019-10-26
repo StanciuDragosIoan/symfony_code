@@ -550,4 +550,245 @@
             autowiring) we can define (via bind) what kind of values are passed to specific
             argument names (we can go further and control what value should be passed for a specific
             type-hint)
+
+
+    13.  Installing Bundles with "Average" Docs
+
+        we'll use this bundle:
+            https://github.com/nexylan/slack-bundle
+                it gives us a service that can send messages to a slack channel
+
+        installed the bundle (composer require nexylan/slack-bundle php-http/guzzle6-adapter)
+            installs the bundle + the guzzle6-adapter
+
+        when ran the cmd, it installed the bundles in bundles.php and threw an error 'The child 
+        node "endpoint" at path "nexy_slack" must be configured.' 
+
+                do remember that even if a composer requier ... cmd throws an error, the 
+                bundle is still installed (we can c it in bundles.php) however, we may 
+                need to make additional configurations (check the bundle docs)
+
+        copied some configuration from the docs and pased it in a new config file (that I created)
+        nexy_slack.yaml (nexy_slack as this is the key name in the confiuration from the docs +
+        the error throws this key too **);
+
+            grabbed this config from the docs:
+
+                nexy_slack:
+                    # The Slack API Incoming WebHooks URL.
+                    endpoint:             ~ # Required
+
+            pasted it in the nexy_slack.yaml    
+
+
+        
+        for this to work I need access to a slack workspace where I am an admin
+
+        in the workspace go to 'manage apps' and search for 'Incoming web hooks'
+
+        click 'Add to slack'
+
+        add a workspace to the configuration and get a webhook URL
+
+            url: https://hooks.slack.com/services/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
+        
+        pasted the URL to endpoint key in nexy_slack.yaml
+
+        cleared the cache ./bin/console cache:clear
+            starting with symfony 4.0.5 this will not be required (clearing the cache when adding
+            a new config file)
+
+        ran ./bin/console debug:autowiring
+            we cannot see a 'slack' service (we'll need to autowire an alias - the nexy_slack.client
+            from the documentation)
+
+             
+
+    14. Autowiring aliases
+
+            the way we coded in symfony 3 is different than symfony 4
+                in symfony 3 services were defined as 'public' (so we could use $this->get() in the
+                controller to fetch the service by its ID, or if we had the container object itself
+                we could say container->get() to do the same thing)
+
+                in symfony 4 most services are private (when a service is private we cannot use
+                this->get() shortcut to fetch the service)
+
+                symfony4 has a new 'philosophy'
+
+                    check services.yaml
+
+                    as all services are private now (most of them), and we can't use $this->get() we
+                    need to fetch them by dependency injection
+
+                    this is a better practice than $this->get() and it is faster (the app is faster
+                    as private services are faster)
+
+                        $this->get can be used with Controller instead of AbstractContrller (the class 
+                        that the base controller extends)
+
+                    run ./bin/console debug:container nexy_slack.client
+                        we can see that the ID and the class for nexy_slack.client service are:
+                            Nexy\Slack\Client 
+
+                    imported the namespace in the ArticleController and passed a $slack argument
+                    typehinted as Class (from the Nexy\Slack\Client namespace)
+                    
+                            This now works ! (initially it didn't), however, we can use an ID alias too
+                                it also works if we inject the dependency in the constructor (instead 
+                                of a method)
+
+                    2nd way of doing it:
+                        add under bind: in services.yaml: 
+                                 $slack: '@Nexy\Slack\Client'
+                        so add the $slack argument and the service name
+                        remove the ypehint from show() and it will still work
+                            
+                        so we can use the bind in the services.yaml to bind by a class or 
+                        interface or by the argument name (if we want to bind a class for 
+                        autowiring, we can do that here)
+    
+    15. Environment Variables
+
+        the URL is hardcoded in a config file (we ll put it in the environment variables file)
+        DB password will have the same issue
+
+        environment variables = environments set on the operating system and that cen be read by the 
+        code (with the getenv() function or $_SERVER var -> $_SERVER['APP_ENV'])
+
+            environment variables are set differently based on the setup (apache, nginx, docker, etc..)
+        
+        in symfony we can set them through the .env file
+
+            in nexy_slack.yaml we added:
+
+                endpoint:  '%env(SLACK_WEBHOOK_ENDPOINT)%' (replaced the hard coded url with environment
+                variable)
+
+
+
+            added the environment var in the .env file:
+
+                SLACK_WEBHOOK_ENDPOINT=https://hooks.slack.com/services/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
+            
+            ran: ./bin/console about (to see all the environment vars)
+
+            ### protecting sensitive data from environment variables:
+                created a .env.local file (this file will hold all sensitive data and will be ignored
+                by git when committing)
+
+                use the .env.local while developing (remove the sensitive/secret bits of data from
+                environment vars while pushing to github)
+
+   
+   
+    16. Env Var Tricks & on Production
+
+        When deploying to production we have to set environment variables correctly
+            see environment vars configuration in bootstrap.php
+
+        because setting environment variables on the server while deploying to production can be
+        tricky (depending on platform/setup, etc...) we can use the .env file and a symfony app
+        will set the environment based on the production server based on that
+
+            the symfony/dotenv library from the require-dev section of composer.json to require
+                symfony seems to be doing that automatically
+
+        environment variables are only strings (so it can be problematic to set one as true or false)
+            in order to overcome that shortcoming we can cast values by prefixing the name with e.g: 
+                    string:
+                    bool:
+                    int:
+                    float:
+
+                    + other params:
+                    resolve:  //resolves params
+                    file:     //returns file contents
+                    base64:   //base64 decodes a vale (for values with linebreaks of special chars)
+                    constant: //read constatns
+                    json:  //json decodes a string
+
+                            we can chain them:
+
+                                app.secrets: '%env(json:file:SECRETS_FILE)'
+                    we can also read our own custom prefixes:
+                            custom: //custom logic here
+
+    
+    17.Bonus! LoggerTrait & Setter Injection
+
+        What if we want to send slack msgs from somewhere else in the app? 
+            we'll make a service for that
+                created a SlackClient.php in the service directory
+                moved the logic for sending the msg from the controller  inside 
+                the SlackClient class:
+
+
+            SlackClient.php code:
+
+
+                namespace App\Service;
+                use Nexy\Slack\Client;
+
+                class SlackClient
+                {   
+                    private $slack;
+
+                    public function __construct(Client $slack)
+                    {
+                        $this->slack = $slack;
+                    }
+                        
+
+                    public function sendMessage(string $from, string $msg)
+                    {
+                        
+                        if($slug == 'khaaaaaan') {
+                                
+                            $SlackMsg = $this->slack->createMessage()
+                                ->from($from)
+                                ->withIcon(':ghost:')
+                                ->setText($msg)
+                            ;
+
+                            $this->slack->sendMessage($SlackMsg); 
+
+                        }
+                    }
+                }
+
+            in the ArticleController, imported the new service namespace SlackClient, typhinted
+            the argument as SlackClient and replaced the old code with:
+                 $slack->sendMessage('Khan', 'Ah, Kirk, my old firend...'); 
+
+
+
+        will use a setter injection to set a logging interface for the SlackClient class
+                so we can log a message in SlackClient 
+                    we could do that with the LoggerInterface (put instance of it typehinted in
+                    constructor and it will work)
+
+                instead of that we'll use a setter injection:
+                    it is useful for optional dependencies like a logger (if a logger was not passed
+                    to this class ,we could still write our code so that it works)
+
+                created a public function setLogger(LoggerInterface $logger) in SlackClient
+
+                added an annotation for the type in SlackClient
+                added the namespace and passed the argument, but the method still will
+                not work as autowiring only autowires the __construct() method
+
+                added a 2nd annotation (required) above setLogger()
+
+                now the logger works and we log messages
+
+        will create a logger trait through the @required feature
+            created a Helper directory in src
+                created a LoggerTrait.php inside and defnied the trait
+                moved the logger property from SlackClient to the trait
+                moved the setLogger method from SlackClient to the trait
+
+
+
+                    
 */  

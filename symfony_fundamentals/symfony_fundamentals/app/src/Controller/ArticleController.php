@@ -8,6 +8,7 @@
     use Symfony\Component\HttpFoundation\Response;
     use Symfony\Component\HttpFoundation\JsonResponse;
     use App\Service\MarkdownHelper;
+    use App\Service\SlackClient;
 
     class ArticleController extends AbstractController
     {   
@@ -22,15 +23,16 @@
         /**
          *@Route("/news/{slug}", name="article_show")
          */
-        public function show($slug, MarkdownHelper $markdownHelper, bool $isDebug)
+        public function show($slug, MarkdownHelper $markdownHelper, bool $isDebug, SlackClient  $slack)
         {   
-            dump($isDebug); die;
+             
+            if($slug == 'khaaaaaan') {
+               
+                $slack->sendMessage('Khan', 'test slack msg'); 
 
-            $comments = [
-                'Comment One for post One',
-                'Comment Two for post Two',
-                'Comment 3 for Post 3'
-            ];
+            }
+
+                   
 
  
 
@@ -61,7 +63,7 @@ EOF;
          
           $articleContent = $markdownHelper->parse($articleContent);
           
-
+            $comments = 'comments here...';
 
         // dump($slug, $this);
 
