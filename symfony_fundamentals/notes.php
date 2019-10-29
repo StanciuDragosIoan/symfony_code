@@ -790,5 +790,74 @@
 
 
 
-                    
+    18. Make bundle
+
+        will introduce a new bundle
+        ran composer require maker --dev  (maker = alias for symfony/maker-bundle)
+
+        this bundle gives us a service that generates multiple new console commands
+        (commands which generate things for us - run ./bin/console to see the new
+        cmds)
+
+        ran .bin/console make:command
+        (will prompt for cmd name -> used article:stats)  
+            this created a Command folder in 'src' and an ArticleStatsCommand.php file 
+            inside
+        
+        run ./bin/console article:stats (and the cmd will work)
+
+        the command already works because it extends the symfony Command class and because
+        in services.yaml we have autoconfiguration:true 
+
+    19. Fun with commands
+        
+        in configure() :
+
+
+        modified cmd description in ArticleStatsCommand.php 
+            commands have arguments which can be passed after the cmd and options which
+            are prefixed with -- --option1/--option2, etc..
+        
+        added argument for the cmd + description:
+
+            ->addOption('option1', null, InputOption::VALUE_NONE, 'The article\'s slug')
+
+        adde format option for the cmd + description:
+
+             ->addOption('format', null, InputOption::VALUE_REQUIRED, 'The output format', 
+             'text')
+
+
+        in execute():
+            
+            modified the function
+
+            execute has 2 arguments input and output
+                input = lets us read arguments/options and we can use it to ask questions
+                interactively
+                output = is all about printing things
+
+                        protected function execute(InputInterface $input, OutputInterface $output): int
+                    {
+                        $io = new SymfonyStyle($input, $output);
+                        $slug = $input->getArgument('slug');
+                        $data = [
+                            'slug'=> $slug,
+                            'heards' => rand(10, 100),
+                        ];
+                        
+                        switch($input->getOption('format')){
+                            case 'text': 
+                                //print a list of array items
+                                $io->listing($data);
+                                break;
+                            case 'json':
+                                //print json data as raw text
+                                $io->write(json_encode($data));
+                                break;
+                            default:
+                                throw new \Excetion('What kind of crazy format is that?');
+                        }
+                    }
+               
 */  
