@@ -24,7 +24,19 @@
 
      ./bin/console about (shows environment variables)
 
+     ./bin/console doctrine:database:create (creates DB)
 
+     ./bin/console make:entity (creates a DB entity)
+
+     ./bin/console make:migration (checks the DB and the entity classes and creates the
+                                   mySQL code necessary to create the DB table)
+
+     ./bin/console doctrine:migrations:migrate (actually creates the DB table)
+
+     ./bin/console doctrine:migrations:status (gives us migrations status)
+
+     ./bin/console doctrine:query:sql 'SELECT * from article'  (query the DB with specific
+     sql queries)
      
      @@ACtual symfony cmds:
 
